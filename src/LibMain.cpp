@@ -1,4 +1,5 @@
 #include "LibMain.h"
+#include <array>
 
 namespace gigperformer
 {
@@ -14,7 +15,10 @@ GigPerformerAPI *CreateGPExtension(LibraryHandle handle)
 } // namespace gigperformer
 
 // List of menu items
-std::vector<std::string> menuNames = {"Show Window", "Hide Window"};
+std::vector<std::string> menuNames = {
+    "Show",
+    "Hide",
+};
 
 int LibMain::GetMenuCount()
 {
@@ -39,13 +43,45 @@ void LibMain::InvokeMenu(int index)
         switch (index)
         {
         case 0:
-            LogWindow::showWindow();
+            MediaViewer::showWindow();
             break;
         case 1:
-            LogWindow::hideWindow();
+            MediaViewer::hideWindow();
             break;
         default:
             break;
         }
     }
+}
+
+extern "C" void ShowMediaViewer(GPRuntimeEngine *)
+{
+    juce::MessageManager::getInstance()->callAsync([]() { MediaViewer::showWindow(); });
+}
+
+extern "C" void HideMediaViewer(GPRuntimeEngine *)
+{
+    juce::MessageManager::getInstance()->callAsync([]() { MediaViewer::hideWindow(); });
+}
+
+extern "C" void DisplayMedia(GPRuntimeEngine *vm)
+{
+    char buffer[100];
+    GP_VM_PopString(vm, buffer, 100);
+    std::string s = buffer;
+    juce::MessageManager::getInstance()->callAsync([s]() { MediaViewer::displayMedia(s); });
+}
+
+ExternalAPI_GPScriptFunctionDefinition functionList[] = {
+    {"Show", "", "", "Show the media viewer", ShowMediaViewer},
+    {"Hide", "", "", "Hide the media viewer", HideMediaViewer},
+    {"DisplayMedia", "path : String", "", "Specify the file path of the image/video to be displayed", DisplayMedia},
+};
+
+int LibMain::RequestGPScriptFunctionSignatureList(GPScript_AllowedLocations, // these are allowed in any script
+                                                  ExternalAPI_GPScriptFunctionDefinition **list)
+{
+    *list = functionList;
+    int count = sizeof(functionList) / sizeof(ExternalAPI_GPScriptFunctionDefinition);
+    return count;
 }
