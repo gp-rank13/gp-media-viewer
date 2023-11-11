@@ -31,7 +31,7 @@ MediaViewer::MediaViewer()
     video.reset(new VideoComponent(true));
     addChildComponent(video.get());
     //video->onPlaybackStopped([](){MediaViewer::playbackStopped();});
-    video->onPlaybackStopped = [](void) { MediaViewer::playbackStopped();};
+    //video->onPlaybackStopped = [](void) { MediaViewer::playbackStopped();};
 
     //VideoComponent vc;
     //vc.onPlaybackStarted( this {DBG("\n\n video has started !\n"); };
